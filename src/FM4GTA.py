@@ -54,6 +54,23 @@ class FRule:
         
 #"=" + '"' + self. + '"' + " " \
 
+def blockPortsRangeBuilder(allowPorts):
+
+    allowPorts.sort()
+
+    blockedRanges = []
+
+    for idx, port in enumerate(allowPorts):
+        if idx == 0:
+            blockedRanges.append("0-" + str(port - 1))
+        else:
+            blockedRanges.append(str(allowPorts[idx-1] + 1) + "-" + str(port - 1))
+    
+    blockedRanges.append(str(allowPorts[allowPorts.__len__() - 1] + 1) + "-65535")
+
+    return ', '.join(blockedRanges)
+
+
 def getIP():
     return get('https://api.ipify.org').text
 
@@ -82,6 +99,8 @@ reIP="192.168.1.46", \
 loPO="5454", \
 rePO="5454")
 
-print(r1.getRuleString())
-sendCommand(r1.getRuleString())
+#print(r1.getRuleString())
+#sendCommand(r1.getRuleString())
+
+print(blockPortsRangeBuilder([5353, 27013, 15758]))
 
