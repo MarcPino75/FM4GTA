@@ -6,6 +6,7 @@ import os
 import ctypes
 import sys
 import ipaddress as ip
+import csv
 
 class FRule:
     
@@ -25,7 +26,7 @@ class FRule:
     interf = "any"
     
     def __init__(self, name, direction, filepath, action, protocol,
-    loIP, reIP, loPO, rePO):
+    reIP, rePO, loIP, loPO):
         self.name = name
         self.direc = direction
         self.act = action
@@ -68,7 +69,33 @@ def blockPortsRangeBuilder(allowPorts):
     
     blockedRanges.append(str(allowPorts[allowPorts.__len__() - 1] + 1) + "-65535")
 
-    return ', '.join(blockedRanges)
+    return ','.join(blockedRanges)
+
+def blockIPRangeBuilder(allowIPs):
+    
+    allowIPs.sort()
+    
+    blockedRanges = []
+
+    for idx, uneIP in enumerate(allowIPs):
+        if idx == 0:
+            blockedRanges.append("0.0.0.0-" + str(uneIP - 1))
+        else:
+            blockedRanges.append(str(allowIPs[idx-1] + 1) + "-" + str(uneIP - 1))
+    
+    blockedRanges.append(str(allowIPs[allowIPs.__len__() - 1] + 1) + "-255.255.255.255")
+
+    return ','.join(blockedRanges)
+    
+
+def str2IP(strIPs):
+    
+    ip2return = []
+    
+    for ips in strIPs:
+        ip2return.append(ip.ip_address(ips))       
+
+    return ip2return
 
 
 def getIP():
@@ -88,19 +115,37 @@ def sendCommand(commande):
         # Re-run the program with admin rights
         ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
 
-    
-r1 = FRule(name="RegleTest", \
+headerF = ["users","ips","ports"]
+headerP = ["ports2Allow"]
+
+ips = [ip.ip_address('184.144.156.43')]
+ports = [5353, 17185, 27036]
+
+with open("friendsFM4GTA.csv", "w", newline='') as filedata :                          
+    writer = csv.writer(filedata, delimiter=',')
+    writer.writerow(['Marc', '184.144.156.43'])
+
+#with open ("portsFM4GTA.csv",'a') as filedata:                            
+#    writer = csv.DictWriter(filedata, delimiter=',', fieldnames=headerF)
+#    writer.writerow(ports)
+
+
+#print(r1.getRuleString())
+#sendCommand(r1.getRuleString())
+print(getIP())
+
+
+
+rTest = FRule(name="RegleTest", \
 direction="in", \
 filepath="C:\Program Files\Rockstar Games\Grand Theft Auto V\GTA5.exe", \
 action="block", \
 protocol="udp", \
-loIP="192.168.1.46", \
-reIP="192.168.1.46", \
-loPO="5454", \
-rePO="5454")
+reIP=blockIPRangeBuilder(ips), \
+rePO=blockPortsRangeBuilder(ports), \
+loIP="any", \
+loPO=blockPortsRangeBuilder(ports))
 
-#print(r1.getRuleString())
-#sendCommand(r1.getRuleString())
+#sendCommand(rTest.getRuleString())
 
-print(blockPortsRangeBuilder([5353, 27013, 15758]))
 
