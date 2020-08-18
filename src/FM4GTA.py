@@ -117,16 +117,16 @@ def sendCommand(commande):
         # Re-run the program with admin rights
     #    ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
 
-def implementFRules(ips, ports, fileloc):
+def implementFRules(ips, udpPorts, tcpPorts, fileloc):
     ruleInUDP = FRule(name="FM4GTA", \
     direction="in", \
     filepath=fileloc, \
     action="block", \
     protocol="udp", \
     reIP=blockIPRangeBuilder(ips), \
-    rePO=blockPortsRangeBuilder(ports), \
+    rePO=blockPortsRangeBuilder(udpPorts), \
     loIP="any", \
-    loPO=blockPortsRangeBuilder(ports))
+    loPO=blockPortsRangeBuilder(udpPorts))
 
     ruleOutUDP = FRule(name="FM4GTA", \
     direction="out", \
@@ -134,9 +134,9 @@ def implementFRules(ips, ports, fileloc):
     action="block", \
     protocol="udp", \
     reIP=blockIPRangeBuilder(ips), \
-    rePO=blockPortsRangeBuilder(ports), \
+    rePO=blockPortsRangeBuilder(udpPorts), \
     loIP="any", \
-    loPO=blockPortsRangeBuilder(ports))
+    loPO=blockPortsRangeBuilder(udpPorts))
     
     ruleInTCP = FRule(name="FM4GTA", \
     direction="in", \
@@ -144,9 +144,9 @@ def implementFRules(ips, ports, fileloc):
     action="block", \
     protocol="tcp", \
     reIP=blockIPRangeBuilder(ips), \
-    rePO=blockPortsRangeBuilder(ports), \
+    rePO=blockPortsRangeBuilder(tcpPorts), \
     loIP="any", \
-    loPO=blockPortsRangeBuilder(ports))
+    loPO=blockPortsRangeBuilder(tcpPorts))
 
     ruleOutTCP = FRule(name="FM4GTA", \
     direction="out", \
@@ -154,9 +154,9 @@ def implementFRules(ips, ports, fileloc):
     action="block", \
     protocol="tcp", \
     reIP=blockIPRangeBuilder(ips), \
-    rePO=blockPortsRangeBuilder(ports), \
+    rePO=blockPortsRangeBuilder(tcpPorts), \
     loIP="any", \
-    loPO=blockPortsRangeBuilder(ports))
+    loPO=blockPortsRangeBuilder(tcpPorts))
 
     print(ruleInUDP.getRuleString())
     sendCommand(ruleInUDP.getRuleString())
@@ -170,17 +170,18 @@ def implementFRules(ips, ports, fileloc):
 def clearFR():
     sendCommand("netsh advfirewall firewall delete rule name=FM4GTA")
 
-#def setFileLoc():
-#    Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
-#    filename = askopenfilename() # show an "Open" dialog box and return the path to the selected file
-#    file = open("clientPath.txt", "w") 
-#    file.write(filename) 
- #   file.close() 
+def setFileLoc():
+    root = tk.Tk()
+    root.withdraw()
+    fp = filedialog.askopenfilename()
+    return fp.replace('/', '\\')
 
 lesIPs = []
 tIP = []
-lesPorts = []
+lesPortsUDP = []
 tports = []
+lesPortsTCP = []
+tportsTCP = []
 #loc = ""
 
 with open('friendsFM4GTA.csv', newline='') as friendsfile:
@@ -195,11 +196,13 @@ with open('portsFM4GTA.csv', newline='') as portsfile:
         tports.append(row)
 portsfile.close()
 
-#with open('clientPath.txt', 'r') as f:
-#    print(f.readline)
+with open('clientPath.txt', 'r') as f:
+    cPath = f.readline()
 
 for port in tports[0]:
-    lesPorts.append(int(port))
+    lesPortsUDP.append(int(port))
+for port in tports[1]:
+    lesPortsTCP.append(int(port))
 
 for unIP in tIP:
     lesIPs.append(ip.ip_address(unIP))
@@ -215,18 +218,23 @@ if is_admin():
     print("\nVotre IP externe est : " + getIP())
     
     print(lesIPs)
-    print(lesPorts)
+    print(lesPortsUDP)
+    print(lesPortsTCP)
+    print(cPath)
 
     uInput = input('\nSelect mode :\n1. Implement FRs\n2. Delete FRs\n3. Set file location\n\n')
 
     if uInput == "1":
         print("\nImplement FR chosen\n")
-        implementFRules(lesIPs, lesPorts, "C:\Program Files\Rockstar Games\Grand Theft Auto V\GTA5.exe")
+        implementFRules(lesIPs, lesPortsUDP, lesPortsTCP, cPath)
     elif uInput == "2":
         print("\nDelete FR chosen\n")
         clearFR()
-    #elif uInput == "3":
-    #    setFileLoc()
+    elif uInput == "3":
+        filePath = setFileLoc()
+        with open("clientPath.txt", "w") as f :
+            f.writelines([filePath])
+        
     input("Appuyez sur entrée pour continuer")
 else:
     # Re-run the program with admin rights
