@@ -103,22 +103,24 @@ def getIP():
 
 def sendCommand(commande):
         
-    def is_admin():
-        try:
-            return ctypes.windll.shell32.IsUserAnAdmin()
-        except:
-            return False
+    subprocess.call(commande)
+    
+    #def is_admin():
+    #    try:
+    #        return ctypes.windll.shell32.IsUserAnAdmin()
+    #    except:
+    #        return False
 
-    if is_admin():
-        subprocess.call(commande)
-    else:
+    #if is_admin():
+    #    subprocess.call(commande)
+    #else:
         # Re-run the program with admin rights
-        ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
+    #    ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
 
-def implementFRules(ips, ports):
+def implementFRules(ips, ports, fileloc):
     ruleIn = FRule(name="FM4GTA", \
     direction="in", \
-    filepath="C:\Program Files\Rockstar Games\Grand Theft Auto V\GTA5.exe", \
+    filepath=fileloc, \
     action="block", \
     protocol="udp", \
     reIP=blockIPRangeBuilder(ips), \
@@ -128,61 +130,79 @@ def implementFRules(ips, ports):
 
     ruleOut = FRule(name="FM4GTA", \
     direction="out", \
-    filepath="C:\Program Files\Rockstar Games\Grand Theft Auto V\GTA5.exe", \
+    filepath=fileloc, \
     action="block", \
     protocol="udp", \
     reIP=blockIPRangeBuilder(ips), \
     rePO=blockPortsRangeBuilder(ports), \
     loIP="any", \
-    loPO=blockPortsRangeBuilder(ports)) 
+    loPO=blockPortsRangeBuilder(ports))
+    
+    print(ruleIn.getRuleString())
+    sendCommand(ruleIn.getRuleString())
+    print(ruleOut.getRuleString())
+    sendCommand(ruleOut.getRuleString())
 
 def clearFR():
     sendCommand("netsh advfirewall firewall delete rule name=FM4GTA")
 
-ips = []
-ports = []
+#def setFileLoc():
+#    Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
+#    filename = askopenfilename() # show an "Open" dialog box and return the path to the selected file
+#    file = open("clientPath.txt", "w") 
+#    file.write(filename) 
+ #   file.close() 
+
+lesIPs = []
+tIP = []
+lesPorts = []
+tports = []
+#loc = ""
 
 with open('friendsFM4GTA.csv', newline='') as friendsfile:
     csvRead = csv.reader(friendsfile, delimiter=',')
     for row in csvRead:
-        ips.append(row[1])
+        tIP.append(row[1])
 friendsfile.close()
 
 with open('portsFM4GTA.csv', newline='') as portsfile:
     csvRead = csv.reader(portsfile, delimiter=',')
     for row in csvRead:
-        ports.append(row)
+        tports.append(row)
+portsfile.close()
 
+#with open('clientPath.txt', 'r') as f:
+#    print(f.readline)
 
+for port in tports[0]:
+    lesPorts.append(int(port))
 
-#headerF = ["users","ips","ports"]
-#headerP = ["ports2Allow"]
+for unIP in tIP:
+    lesIPs.append(ip.ip_address(unIP))
 
-#ips = [ip.ip_address('184.144.156.43')]
-#ports = [5353, 17185, 27036]
+def is_admin():
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except:
+        return False
 
-#with open("friendsFM4GTA.csv", "w", newline='') as filedata :                          
-#    writer = csv.writer(filedata, delimiter=',')
-#    writer.writerow(['Marc', '184.144.156.43'])
+if is_admin():
+    print(lesIPs)
+    print(lesPorts)
 
-#with open ("portsFM4GTA.csv", "w", newline='') as filedata:                            
-#    writer = csv.writer(filedata, delimiter=',')
-#    writer.writerow(ports)
+    uInput = input('\nSelect mode :\n1. Implement FRs\n2. Delete FRs\n3. Set file location\n\n')
 
-
-#print(r1.getRuleString())
-#sendCommand(r1.getRuleString())
-#print(getIP())
-
-#rTest = FRule(name="RegleTest", \
-#direction="in", \
-#filepath="C:\Program Files\Rockstar Games\Grand Theft Auto V\GTA5.exe", \
-#action="block", \
-#protocol="udp", \
-#reIP=blockIPRangeBuilder(ips), \
-#rePO=blockPortsRangeBuilder(ports), \
-#loIP="any", \
-#loPO=blockPortsRangeBuilder(ports))
-
+    if uInput == "1":
+        print("\nImplement FR chosen\n")
+        implementFRules(lesIPs, lesPorts, "C:\Program Files\Rockstar Games\Grand Theft Auto V\GTA5.exe")
+    elif uInput == "2":
+        print("\nDelete FR chosen\n")
+        clearFR()
+    #elif uInput == "3":
+    #    setFileLoc()
+    input("Appuyez sur entrée pour continuer")
+else:
+    # Re-run the program with admin rights
+    ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
 
 
