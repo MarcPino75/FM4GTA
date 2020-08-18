@@ -122,7 +122,7 @@ def implementFRules(ips, ports, fileloc):
     direction="in", \
     filepath=fileloc, \
     action="block", \
-    protocol="udp", \
+    protocol="any", \
     reIP=blockIPRangeBuilder(ips), \
     rePO=blockPortsRangeBuilder(ports), \
     loIP="any", \
@@ -132,7 +132,7 @@ def implementFRules(ips, ports, fileloc):
     direction="out", \
     filepath=fileloc, \
     action="block", \
-    protocol="udp", \
+    protocol="any", \
     reIP=blockIPRangeBuilder(ips), \
     rePO=blockPortsRangeBuilder(ports), \
     loIP="any", \
