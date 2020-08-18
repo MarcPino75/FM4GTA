@@ -118,30 +118,54 @@ def sendCommand(commande):
     #    ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
 
 def implementFRules(ips, ports, fileloc):
-    ruleIn = FRule(name="FM4GTA", \
+    ruleInUDP = FRule(name="FM4GTA", \
     direction="in", \
     filepath=fileloc, \
     action="block", \
-    protocol="any", \
+    protocol="udp", \
     reIP=blockIPRangeBuilder(ips), \
     rePO=blockPortsRangeBuilder(ports), \
     loIP="any", \
     loPO=blockPortsRangeBuilder(ports))
 
-    ruleOut = FRule(name="FM4GTA", \
+    ruleOutUDP = FRule(name="FM4GTA", \
     direction="out", \
     filepath=fileloc, \
     action="block", \
-    protocol="any", \
+    protocol="udp", \
     reIP=blockIPRangeBuilder(ips), \
     rePO=blockPortsRangeBuilder(ports), \
     loIP="any", \
     loPO=blockPortsRangeBuilder(ports))
     
-    print(ruleIn.getRuleString())
-    sendCommand(ruleIn.getRuleString())
-    print(ruleOut.getRuleString())
-    sendCommand(ruleOut.getRuleString())
+    ruleInTCP = FRule(name="FM4GTA", \
+    direction="in", \
+    filepath=fileloc, \
+    action="block", \
+    protocol="tcp", \
+    reIP=blockIPRangeBuilder(ips), \
+    rePO=blockPortsRangeBuilder(ports), \
+    loIP="any", \
+    loPO=blockPortsRangeBuilder(ports))
+
+    ruleOutTCP = FRule(name="FM4GTA", \
+    direction="out", \
+    filepath=fileloc, \
+    action="block", \
+    protocol="tcp", \
+    reIP=blockIPRangeBuilder(ips), \
+    rePO=blockPortsRangeBuilder(ports), \
+    loIP="any", \
+    loPO=blockPortsRangeBuilder(ports))
+
+    print(ruleInUDP.getRuleString())
+    sendCommand(ruleInUDP.getRuleString())
+    print(ruleOutUDP.getRuleString())
+    sendCommand(ruleOutUDP.getRuleString())
+    print(ruleInTCP.getRuleString())
+    sendCommand(ruleInTCP.getRuleString())
+    print(ruleOutTCP.getRuleString())
+    sendCommand(ruleOutTCP.getRuleString())
 
 def clearFR():
     sendCommand("netsh advfirewall firewall delete rule name=FM4GTA")
