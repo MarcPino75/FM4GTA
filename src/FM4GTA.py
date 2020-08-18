@@ -115,37 +115,74 @@ def sendCommand(commande):
         # Re-run the program with admin rights
         ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
 
-headerF = ["users","ips","ports"]
-headerP = ["ports2Allow"]
+def implementFRules(ips, ports):
+    ruleIn = FRule(name="FM4GTA", \
+    direction="in", \
+    filepath="C:\Program Files\Rockstar Games\Grand Theft Auto V\GTA5.exe", \
+    action="block", \
+    protocol="udp", \
+    reIP=blockIPRangeBuilder(ips), \
+    rePO=blockPortsRangeBuilder(ports), \
+    loIP="any", \
+    loPO=blockPortsRangeBuilder(ports))
 
-ips = [ip.ip_address('184.144.156.43')]
-ports = [5353, 17185, 27036]
+    ruleOut = FRule(name="FM4GTA", \
+    direction="out", \
+    filepath="C:\Program Files\Rockstar Games\Grand Theft Auto V\GTA5.exe", \
+    action="block", \
+    protocol="udp", \
+    reIP=blockIPRangeBuilder(ips), \
+    rePO=blockPortsRangeBuilder(ports), \
+    loIP="any", \
+    loPO=blockPortsRangeBuilder(ports)) 
 
-with open("friendsFM4GTA.csv", "w", newline='') as filedata :                          
-    writer = csv.writer(filedata, delimiter=',')
-    writer.writerow(['Marc', '184.144.156.43'])
+def clearFR():
+    sendCommand("netsh advfirewall firewall delete rule name=FM4GTA")
 
-#with open ("portsFM4GTA.csv",'a') as filedata:                            
-#    writer = csv.DictWriter(filedata, delimiter=',', fieldnames=headerF)
+ips = []
+ports = []
+
+with open('friendsFM4GTA.csv', newline='') as friendsfile:
+    csvRead = csv.reader(friendsfile, delimiter=',')
+    for row in csvRead:
+        ips.append(row[1])
+friendsfile.close()
+
+with open('portsFM4GTA.csv', newline='') as portsfile:
+    csvRead = csv.reader(portsfile, delimiter=',')
+    for row in csvRead:
+        ports.append(row)
+
+
+
+#headerF = ["users","ips","ports"]
+#headerP = ["ports2Allow"]
+
+#ips = [ip.ip_address('184.144.156.43')]
+#ports = [5353, 17185, 27036]
+
+#with open("friendsFM4GTA.csv", "w", newline='') as filedata :                          
+#    writer = csv.writer(filedata, delimiter=',')
+#    writer.writerow(['Marc', '184.144.156.43'])
+
+#with open ("portsFM4GTA.csv", "w", newline='') as filedata:                            
+#    writer = csv.writer(filedata, delimiter=',')
 #    writer.writerow(ports)
 
 
 #print(r1.getRuleString())
 #sendCommand(r1.getRuleString())
-print(getIP())
+#print(getIP())
 
+#rTest = FRule(name="RegleTest", \
+#direction="in", \
+#filepath="C:\Program Files\Rockstar Games\Grand Theft Auto V\GTA5.exe", \
+#action="block", \
+#protocol="udp", \
+#reIP=blockIPRangeBuilder(ips), \
+#rePO=blockPortsRangeBuilder(ports), \
+#loIP="any", \
+#loPO=blockPortsRangeBuilder(ports))
 
-
-rTest = FRule(name="RegleTest", \
-direction="in", \
-filepath="C:\Program Files\Rockstar Games\Grand Theft Auto V\GTA5.exe", \
-action="block", \
-protocol="udp", \
-reIP=blockIPRangeBuilder(ips), \
-rePO=blockPortsRangeBuilder(ports), \
-loIP="any", \
-loPO=blockPortsRangeBuilder(ports))
-
-#sendCommand(rTest.getRuleString())
 
 
