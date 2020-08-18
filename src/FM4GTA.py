@@ -187,6 +187,9 @@ def is_admin():
         return False
 
 if is_admin():
+    
+    print("\nVotre IP externe est : " + getIP())
+    
     print(lesIPs)
     print(lesPorts)
 
