@@ -6,6 +6,7 @@ import os
 import ctypes
 import sys
 import ipaddress as ip
+import csv
 
 class FRule:
     
@@ -25,7 +26,7 @@ class FRule:
     interf = "any"
     
     def __init__(self, name, direction, filepath, action, protocol,
-    loIP, reIP, loPO, rePO):
+    reIP, rePO, loIP, loPO):
         self.name = name
         self.direc = direction
         self.act = action
@@ -68,7 +69,33 @@ def blockPortsRangeBuilder(allowPorts):
     
     blockedRanges.append(str(allowPorts[allowPorts.__len__() - 1] + 1) + "-65535")
 
-    return ', '.join(blockedRanges)
+    return ','.join(blockedRanges)
+
+def blockIPRangeBuilder(allowIPs):
+    
+    allowIPs.sort()
+    
+    blockedRanges = []
+
+    for idx, uneIP in enumerate(allowIPs):
+        if idx == 0:
+            blockedRanges.append("0.0.0.0-" + str(uneIP - 1))
+        else:
+            blockedRanges.append(str(allowIPs[idx-1] + 1) + "-" + str(uneIP - 1))
+    
+    blockedRanges.append(str(allowIPs[allowIPs.__len__() - 1] + 1) + "-255.255.255.255")
+
+    return ','.join(blockedRanges)
+    
+
+def str2IP(strIPs):
+    
+    ip2return = []
+    
+    for ips in strIPs:
+        ip2return.append(ip.ip_address(ips))       
+
+    return ip2return
 
 
 def getIP():
@@ -76,31 +103,133 @@ def getIP():
 
 def sendCommand(commande):
         
-    def is_admin():
-        try:
-            return ctypes.windll.shell32.IsUserAnAdmin()
-        except:
-            return False
-
-    if is_admin():
-        subprocess.call(commande)
-    else:
-        # Re-run the program with admin rights
-        ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
-
+    subprocess.call(commande)
     
-r1 = FRule(name="RegleTest", \
-direction="in", \
-filepath="C:\Program Files\Rockstar Games\Grand Theft Auto V\GTA5.exe", \
-action="block", \
-protocol="udp", \
-loIP="192.168.1.46", \
-reIP="192.168.1.46", \
-loPO="5454", \
-rePO="5454")
+    #def is_admin():
+    #    try:
+    #        return ctypes.windll.shell32.IsUserAnAdmin()
+    #    except:
+    #        return False
 
-#print(r1.getRuleString())
-#sendCommand(r1.getRuleString())
+    #if is_admin():
+    #    subprocess.call(commande)
+    #else:
+        # Re-run the program with admin rights
+    #    ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
 
-print(blockPortsRangeBuilder([5353, 27013, 15758]))
+def implementFRules(ips, ports, fileloc):
+    ruleInUDP = FRule(name="FM4GTA", \
+    direction="in", \
+    filepath=fileloc, \
+    action="block", \
+    protocol="udp", \
+    reIP=blockIPRangeBuilder(ips), \
+    rePO=blockPortsRangeBuilder(ports), \
+    loIP="any", \
+    loPO=blockPortsRangeBuilder(ports))
+
+    ruleOutUDP = FRule(name="FM4GTA", \
+    direction="out", \
+    filepath=fileloc, \
+    action="block", \
+    protocol="udp", \
+    reIP=blockIPRangeBuilder(ips), \
+    rePO=blockPortsRangeBuilder(ports), \
+    loIP="any", \
+    loPO=blockPortsRangeBuilder(ports))
+    
+    ruleInTCP = FRule(name="FM4GTA", \
+    direction="in", \
+    filepath=fileloc, \
+    action="block", \
+    protocol="tcp", \
+    reIP=blockIPRangeBuilder(ips), \
+    rePO=blockPortsRangeBuilder(ports), \
+    loIP="any", \
+    loPO=blockPortsRangeBuilder(ports))
+
+    ruleOutTCP = FRule(name="FM4GTA", \
+    direction="out", \
+    filepath=fileloc, \
+    action="block", \
+    protocol="tcp", \
+    reIP=blockIPRangeBuilder(ips), \
+    rePO=blockPortsRangeBuilder(ports), \
+    loIP="any", \
+    loPO=blockPortsRangeBuilder(ports))
+
+    print(ruleInUDP.getRuleString())
+    sendCommand(ruleInUDP.getRuleString())
+    print(ruleOutUDP.getRuleString())
+    sendCommand(ruleOutUDP.getRuleString())
+    print(ruleInTCP.getRuleString())
+    sendCommand(ruleInTCP.getRuleString())
+    print(ruleOutTCP.getRuleString())
+    sendCommand(ruleOutTCP.getRuleString())
+
+def clearFR():
+    sendCommand("netsh advfirewall firewall delete rule name=FM4GTA")
+
+#def setFileLoc():
+#    Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
+#    filename = askopenfilename() # show an "Open" dialog box and return the path to the selected file
+#    file = open("clientPath.txt", "w") 
+#    file.write(filename) 
+ #   file.close() 
+
+lesIPs = []
+tIP = []
+lesPorts = []
+tports = []
+#loc = ""
+
+with open('friendsFM4GTA.csv', newline='') as friendsfile:
+    csvRead = csv.reader(friendsfile, delimiter=',')
+    for row in csvRead:
+        tIP.append(row[1])
+friendsfile.close()
+
+with open('portsFM4GTA.csv', newline='') as portsfile:
+    csvRead = csv.reader(portsfile, delimiter=',')
+    for row in csvRead:
+        tports.append(row)
+portsfile.close()
+
+#with open('clientPath.txt', 'r') as f:
+#    print(f.readline)
+
+for port in tports[0]:
+    lesPorts.append(int(port))
+
+for unIP in tIP:
+    lesIPs.append(ip.ip_address(unIP))
+
+def is_admin():
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except:
+        return False
+
+if is_admin():
+    
+    print("\nVotre IP externe est : " + getIP())
+    
+    print(lesIPs)
+    print(lesPorts)
+
+    uInput = input('\nSelect mode :\n1. Implement FRs\n2. Delete FRs\n3. Set file location\n\n')
+
+    if uInput == "1":
+        print("\nImplement FR chosen\n")
+        implementFRules(lesIPs, lesPorts, "C:\Program Files\Rockstar Games\Grand Theft Auto V\GTA5.exe")
+    elif uInput == "2":
+        print("\nDelete FR chosen\n")
+        clearFR()
+    #elif uInput == "3":
+    #    setFileLoc()
+    input("Appuyez sur entrée pour continuer")
+else:
+    # Re-run the program with admin rights
+    ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
+
 
