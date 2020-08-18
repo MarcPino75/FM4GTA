@@ -55,7 +55,9 @@ class FRule:
         
 #"=" + '"' + self. + '"' + " " \
 
-def blockPortsRangeBuilder(allowPorts):
+def blockPortsRangeBuilder(allowPortsIn):
+
+    allowPorts = list(set(allowPortsIn))
 
     allowPorts.sort()
 
@@ -71,8 +73,10 @@ def blockPortsRangeBuilder(allowPorts):
 
     return ','.join(blockedRanges)
 
-def blockIPRangeBuilder(allowIPs):
+def blockIPRangeBuilder(allowIPsIn):
     
+    allowIPs = list(set(allowIPsIn))
+
     allowIPs.sort()
     
     blockedRanges = []
@@ -105,18 +109,6 @@ def sendCommand(commande):
         
     subprocess.call(commande)
     
-    #def is_admin():
-    #    try:
-    #        return ctypes.windll.shell32.IsUserAnAdmin()
-    #    except:
-    #        return False
-
-    #if is_admin():
-    #    subprocess.call(commande)
-    #else:
-        # Re-run the program with admin rights
-    #    ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
-
 def implementFRules(ips, udpPorts, tcpPorts, fileloc):
     ruleInUDP = FRule(name="FM4GTA", \
     direction="in", \
