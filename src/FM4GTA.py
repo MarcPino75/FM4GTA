@@ -116,7 +116,7 @@ def implementFRules(ips, udpPorts, tcpPorts, fileloc):
     action="block", \
     protocol="udp", \
     reIP=blockIPRangeBuilder(ips), \
-    rePO=blockPortsRangeBuilder(udpPorts), \
+    rePO="any", \
     loIP="any", \
     loPO=blockPortsRangeBuilder(udpPorts))
 
@@ -128,7 +128,7 @@ def implementFRules(ips, udpPorts, tcpPorts, fileloc):
     reIP=blockIPRangeBuilder(ips), \
     rePO=blockPortsRangeBuilder(udpPorts), \
     loIP="any", \
-    loPO=blockPortsRangeBuilder(udpPorts))
+    loPO="any")
     
     ruleInTCP = FRule(name="FM4GTA", \
     direction="in", \
@@ -136,7 +136,7 @@ def implementFRules(ips, udpPorts, tcpPorts, fileloc):
     action="block", \
     protocol="tcp", \
     reIP=blockIPRangeBuilder(ips), \
-    rePO=blockPortsRangeBuilder(tcpPorts), \
+    rePO="any", \
     loIP="any", \
     loPO=blockPortsRangeBuilder(tcpPorts))
 
@@ -148,7 +148,7 @@ def implementFRules(ips, udpPorts, tcpPorts, fileloc):
     reIP=blockIPRangeBuilder(ips), \
     rePO=blockPortsRangeBuilder(tcpPorts), \
     loIP="any", \
-    loPO=blockPortsRangeBuilder(tcpPorts))
+    loPO="any")
 
     print(ruleInUDP.getRuleString())
     sendCommand(ruleInUDP.getRuleString())
